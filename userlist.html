@@ -1,0 +1,7 @@
+<div style="padding-left:5px;padding-top:5px;">
+{% for user in users %}
+    <a href='http://twitter.com/#!/{{ user.usr }}'><b>{{ user.usr }}</b></a> 
+    <span class='pdate'>({{ user.ch }})</span>
+    <br />
+{% endfor %}
+</div>

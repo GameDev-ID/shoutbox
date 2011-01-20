@@ -1,0 +1,230 @@
+<html>
+  <head>
+      <title>GDI Shoutbox</title>      
+      <script type="text/javascript" src="/_ah/channel/jsapi"></script>
+      <script language="javascript" type="text/javascript" src="/res/jquery.js"></script>
+      <script language="javascript" type="text/javascript" src="/res/jquerytimer.js"></script>
+      
+        <link rel="stylesheet" type="text/css" href="/res/jqpopup.css"/>
+        <script type="text/javascript" src="/res/jquery.bgiframe.min.js"></script>
+        <script type="text/javascript" src="/res/jqDnR.min.js"></script>
+        <script type="text/javascript" src="/res/jquery.jqpopup.min.js"></script>
+        <style type="text/css">
+          body,div,tr,td{
+              font-family: Tahoma, Verdana, Helvetica, Arial;
+              font-size:12px;
+          }
+          .chatbox{
+              border:1px solid black;
+              width:100%;
+              height:200px;
+              overflow:scroll;
+          }
+          .pdate{
+                font-size:9px;
+                color:#707070;            
+          }
+          .stdbtn { width:280px; }
+          A, A:link, A:visited{
+            color:#00aeff;
+            text-decoration:none;
+          }
+          A:hover{
+            text-decoration:underline;
+          }
+        </style>  
+  </head>
+  <body>
+      <script language='javascript' type='text/javascript'>
+            var channel = new goog.appengine.Channel('{{ new_token }}');
+            var socket = channel.open()
+            
+            function convertDate (gmtDate){
+                  var originalDate = new Date(gmtDate);
+                  var nowDate = new Date();
+                  var hour_offset = new Date().getTimezoneOffset() / -60;
+                  originalDate.setHours(originalDate.getHours()+hour_offset);
+                  var day = originalDate.getDate();
+                  var month = originalDate.getMonth() + 1;
+                  var year = originalDate.getFullYear();
+                  var hour = originalDate.getHours();
+                  var min = originalDate.getMinutes();
+                  
+                  var nday = nowDate.getDate();
+                  var nmonth = nowDate.getMonth() + 1;
+                  var nyear = nowDate.getFullYear();
+                  
+                  var newDate = day + "/" + month + "/" + year + " " + hour + ":" + min;
+                  if (nday == day && nmonth == month && nyear == year){                    
+                      newDate = hour + ":" + min;
+                  }              
+                  return newDate;
+              }
+            function updateDateField(){
+              $('body').find("#pdate").each(function(index) {
+                  $(this).html(convertDate($(this).html()));
+              });
+            }
+            
+            socket.onopen = function() {
+                  // request chat list
+                  var xhr = new XMLHttpRequest();
+                  xhr.open('POST', '/chatpost', true);
+                  xhr.send();
+                  ping(); 
+            }        
+            socket.onmessage = function(evt) {
+                var data = JSON.parse(evt.data)
+                if(data.return_type == "chatlist"){
+                    $("#chatbox").html(data.data);
+                    {% ifnotequal new_nickname "__anonymous" %}
+                    var txtMsg = $("#frmChatMsg").find("#msg");
+                    var btnSubmit = $("#frmChatMsg").find("#submit");                  
+                    if(txtMsg.attr('disabled')==true){
+                      txtMsg.attr('disabled',false);
+                      btnSubmit.attr('disabled',false);
+                      txtMsg.attr('value',"");
+                    }
+                    {% endifnotequal %}
+                    updateDateField();
+                }
+                if(data.return_type == "userlist"){
+                    $("#userlistbox").html(data.data);                   
+                }
+            }
+            function ping(){
+              $.post('/ping',{token:'{{ new_token }}'}, function(data) {}); 
+            }
+          
+            jQuery.fn.extend({
+            insertAtCaret: function(myValue){
+              return this.each(function(i) {
+                if (document.selection) {
+                  this.focus();
+                  sel = document.selection.createRange();
+                  sel.text = myValue;
+                  this.focus();
+                }
+                else if (this.selectionStart || this.selectionStart == '0') {
+                  var startPos = this.selectionStart;
+                  var endPos = this.selectionEnd;
+                  var scrollTop = this.scrollTop;
+                  this.value = this.value.substring(0, startPos)+myValue+this.value.substring(endPos,this.value.length);
+                  this.focus();
+                  this.selectionStart = startPos + myValue.length;
+                  this.selectionEnd = startPos + myValue.length;
+                  this.scrollTop = scrollTop;
+                } else {
+                  this.value += myValue;
+                  this.focus();
+                }
+              })
+            }
+            });
+          
+            $(document).ready(function(){
+                {% ifnotequal new_nickname "__anonymous" %}
+                $("#frmChatMsg").find("#submit").click(function(e){
+                    e.preventDefault();
+                    var txtMsg = $("#frmChatMsg").find("#msg");
+                    var btnSubmit = $("#frmChatMsg").find("#submit");
+                    txtMsg.attr('disabled',true);
+                    btnSubmit.attr('disabled',true);                      
+                    if(txtMsg.attr('value')!=""){                                
+                        var msg = txtMsg.attr('value');                      
+                        var xhr = new XMLHttpRequest();
+                        xhr.open('POST', '/chatpost?message=' + escape(msg), true);
+                        xhr.send();     
+                    }                                          
+                });
+                $("body").find("#btn_emo").click(function(e){
+                    $("#msg").insertAtCaret($(this).attr('code'));
+                });
+                $("#btn_view_emo").click(function () {
+                    $("#div_emo").jqpopup_open(this.id);
+                    $("#div_emo").jqpopup_toCenter();
+                });
+                {% endifnotequal %}
+                $(document).everyTime(10000, function(i) { // send ping every 10 secs
+                    ping();                        
+                });
+              
+            });
+            
+      </script>
+      <a href='/archive'>Full Archive</a>
+      <table width='100%' border='0' cellspacing='2' cellpadding='2'>
+        <tr>
+            <td width='75%'>
+                <div id="chatbox" class="chatbox">Loading chat...</div>
+            </td>
+            <td>
+                <div id="userlistbox" class="chatbox">Loading userlist...</div>
+            </td>
+        </tr>
+      </table>
+    {% ifequal new_nickname "__anonymous" %}
+    <a href="/oauth/twitter/login">Login via Twitter</a> to join this chat
+    {% else %}
+    <form action="" method="post" id="frmChatMsg">
+      <div>
+        {{ new_nickname }} : <input type="text" value="" id="msg" size="60" />
+        <input type="submit" value="Send" id="submit" />
+        <input type='button' id='btn_view_emo' value='Smileys' />
+        <a href="/exit">Exit chat (Logout via Twitter)</a><br />
+        
+        
+        <div id="div_emo" style="display:none;" title="Emoticons">
+            {% for emo in arr_emo %}
+            <img src='/res/{{ emo.i }}' alt='{{ emo.c }}' title='{{ emo.c }}' id='btn_emo' code='{{ emo.c }}'/>
+            {% endfor %}
+        </div>
+      </div>
+    </form>
+    {% endifequal %}
+    
+    
+    <br /><br /><br />
+    <div>
+        <b>GDI Shoutbox</b>
+        Murni buat shoutbox, entry nggak ke post ke twit anda, tidak puas uang kembali.<br />
+        Masih BETA, kadang2 down dan diganti2. Entry bisa terhapus setiap saat<hr />
+        
+        <b>Updates</b><br/>
+        19 Jan 2010
+        <ol>
+            <li>Smiley skrng pake popup</li>
+        </ol>
+        18 Jan 2010
+        <ol>
+            <li>Tambah hashtag twitter #hashtag</li>
+            <li>Tambah plurk emoticon, pakai :plemo_[emoticon]</li>
+            <li>Tambah secret emoticon, pakai :ss_[emoticon]</li>
+            <li>Emoticon default sb gdi dah dipasang</li>
+            <li>Tambah emoticon toolbar</li>
+            <li>Liat past chats bisa dari link archive diatas chatlist</li>
+            <li>Bisa parse url</li>
+            <li>Bisa mention pake @username</li>
+            <li>Tambah emo :kabur: :cizcuz:, emo lain nyusul</li>
+            <li>Tambah command :imgbin_[code]: buat nampilin gambar imgbin</li>
+            <li>Tambah command /me [pesan disini]</li>
+            <li>Tambah message (log out via twitter) klo link exit chat di klik</li>
+            <li>Anonymous dah bisa liat chat, tapi harus join untuk ikutan chat</li>
+            <li>Datetime dah di format dan sesuai timezone</li>
+            <li>Join/quit message udah diperbaiki, hanya jika semua channel user nggak ada, baru di post messagenya</li>
+        </ol>
+        17 Jan 2010
+        <ol>
+            <li>Ganti dari polling ke Channel API untuk koneksi yg lebih persistent dan hemat resource</li>
+            <li>Nambahin list user online</li>
+            <li>Limit nampilin chat entry sampe 30 latest</li>
+            <li>Channel exclusif, tiap channel yg nggak ngeping ke server bakal get out dari list user online</li>
+        </ol>
+        16 Jan 2010
+        <ol>
+            <li>Mulai bikin gdishoutbox, setup account twitter, appengine, bikin database, semua2 deh</li>
+        </ol>
+            
+    </div>
+  </body>
+</html>

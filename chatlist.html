@@ -1,0 +1,35 @@
+<style type="text/css">          
+    .tweet_mention{
+      padding-bottom:1px;
+      padding-top:1px;
+      padding-right:5px;
+      padding-left:18px;
+      color:#ffffff;
+      background-color:#13a7d8;
+      text-decoration:none;
+      font-weight:bold;
+      background-image:url('/res/icons/twitter_mention_bg.jpg');
+      background-repeat:no-repeat;
+    }
+    .chat_entry{
+        padding:4px;
+    }
+    A, A:link, A:visited{
+        color:#00aeff;
+        text-decoration:none;
+      }
+      A:hover{
+        text-decoration:underline;
+      }
+</style> 
+{% for chat in chats %}
+    <div class="chat_entry">
+        {% ifequal chat.usr "" %}
+            <small><i>{{ chat.msg }}</i></small> <span id="pdate" class='pdate'>{{ chat.date }}</span>
+        {% else %}        
+            <span id="pdate" class='pdate'>{{ chat.date }}</span> 
+            <b><a href='http://twitter.com/#!/{{ chat.usr }}'>{{ chat.usr }}</a></b> 
+            {{ chat.msg }}
+        {% endifequal %}
+    </div>
+{% endfor %}
