@@ -49,8 +49,8 @@ OAUTH_APP_SETTINGS = {
 
     'twitter': {
 
-        'consumer_key': '',
-        'consumer_secret': '',
+        'consumer_key': 'b3sGDiFw8T02gs6qvJqrw',
+        'consumer_secret': 'oHgASGcAwMDjazw802namZYpOpdXwosot2zEJlYvqA',
 
         'request_token_url': 'https://api.twitter.com/oauth/request_token',
         'access_token_url': 'https://api.twitter.com/oauth/access_token',
@@ -62,8 +62,8 @@ OAUTH_APP_SETTINGS = {
         },
     'soulbox': {
 
-        'consumer_key': '',
-        'consumer_secret': '',
+        'consumer_key': 'WLdDqBExrTh7QRrbRNSBvA',
+        'consumer_secret': 'mjcpGlsArr1oqd0GxNeh1kQuzyBn3I7GwPmHIME',
 
         'request_token_url': 'http://gdi-accounts.appspot.com/oauth/request_token',
         'access_token_url': 'http://gdi-accounts.appspot.com/oauth/access_token',
@@ -258,6 +258,7 @@ class OAuthClient(object):
             )
 
         key_name = create_uuid()
+        
 
         self.token = OAuthAccessToken(
             key_name=key_name, service=self.service,

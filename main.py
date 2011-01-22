@@ -8,6 +8,16 @@ import re
 import pythontwitter
 import datetime
 import string
+import oauth
+
+application_key = "WLdDqBExrTh7QRrbRNSBvA" 
+application_secret = "mjcpGlsArr1oqd0GxNeh1kQuzyBn3I7GwPmHIME"
+user_token = "FILL_IN"  
+user_secret = "FILL_IN"
+#host = "http://localhost:8087"
+host = "http://gdishoutbox.appspot.com"
+
+callback = "%s/verify" % host
 
 #todo: setiap ping, atau buat ping baru dengan interval yg lebih besar (tiap 5 menit misalnya)
 #di tiap ping tsb, cek new thread/reply di gdi, dari rss mungkin, klo ada yg baru, broadcast
@@ -62,7 +72,7 @@ addEmo(':-)','icon_smile')
 addEmo(':(','icon_sad')
 addEmo('#-o','eusa_doh')
 addEmo(':lol:','icon_lol')
-addEmo(':-P','y_10')
+addEmo(':-p','y_10')
 addEmo(':angel:','eusa_angel')
 addEmo(';-)','icon_wink')
 addEmo(':bad-words:','new_cussing')
@@ -237,15 +247,15 @@ addEmo(':plemo_w00t','pl_icons/w00t','.gif',True)
 addEmo(':plemo_worship','pl_icons/worship','.gif',True)
 
 class ActiveUsers(db.Model):
-    username = db.StringProperty(multiline=False)
-    token = db.StringProperty(multiline=False)
+    username = db.StringProperty(multiline=True)
+    token = db.StringProperty(multiline=True)
     created = db.DateTimeProperty(auto_now_add=True)
     last_updated = db.DateTimeProperty(auto_now_add=True)
     diff_sec = db.IntegerProperty()
     
 class ChatData(db.Model):
-    usr = db.StringProperty(multiline=False)
-    msg = db.StringProperty(multiline=False)
+    usr = db.TextProperty()
+    msg = db.TextProperty()
     date = db.DateTimeProperty(auto_now_add=True)
 
 class ping(webapp.RequestHandler):
@@ -305,16 +315,26 @@ class ping(webapp.RequestHandler):
                         'data' : output
                         }
         users_json = simplejson.dumps(output_users)
-        channel.send_message(username + created, users_json)
+        try:
+            channel.send_message(username + created, users_json)
+        except channel.InvalidChannelClientIdError:
+            pass
+        
             
 class ChatPost(webapp.RequestHandler):
     def processMsg(self,usr,msg,fdate):
         msg += " "
+        
+        #html escape
+        msg = msg.replace("<","&lt;")
+        msg = msg.replace("<","&gt;")
+        
+        
         arr_msg = msg.split(' ',1)        
         
         #all first command action (/me, /tweet, etc)
         if arr_msg[0] == "/me":  
-            msg = "<b>*" + usr + " " + arr_msg[1] + "*</b>"
+            msg = "<b><span class='me'>*" + usr + " " + arr_msg[1] + "*</span></b>"
             usr = " "
         elif arr_msg[0] == "/fake": # ~username: msg (real username) (pdate style)
             if len(msg.split(' ',2)) >= 3:
@@ -353,7 +373,7 @@ class ChatPost(webapp.RequestHandler):
         #emoticons (:penguin:), dan hidden (:kabur:)
         #cuman yg hidden nggak ditampilin di emo list, dan di db tagnya harus beda sama nama filenya
         #contoh untuk tag kabur, nama filenya penguinlari.gif
-        
+                
         for emo in arr_emo:
             msg = msg.replace(emo['c'],"<img src='/res/" + emo['i'] + "' title='" + emo['c'] +"' alt='" + emo['c'] +"'>")
         for emo in arr_emo_secret:
@@ -445,11 +465,10 @@ class ChatPost(webapp.RequestHandler):
             channel.send_message(user.username + str(user.created), chats_json)
         return 0
     def post(self):        
-        client = pythontwitter.OAuthClient('twitter', self)
+        client = oauth.GDIClient(application_key, application_secret, callback,self)
         if client.get_cookie():
             if self.request.get('message')!="":                
-                info = client.get('/account/verify_credentials')
-                username = info['screen_name']
+                username = client.get_cookie_username()
                 chat = ChatData()
                 chat.usr = username
                 chat.msg = self.request.get('message')        
@@ -463,31 +482,39 @@ class ChatArchive(webapp.RequestHandler):
         
 class ChatExit(webapp.RequestHandler):
     def get(self):
-        client = pythontwitter.OAuthClient('twitter', self)
-        info = client.get('/account/verify_credentials')
-        username = info['screen_name']
+        client = oauth.GDIClient(application_key, application_secret, callback,self)
+        
+        username = client.get_cookie_username()
         user_ch = db.GqlQuery("SELECT * FROM ActiveUsers WHERE username='" + username + "'")
         for user in user_ch:
             user.delete()
         chat = ChatData()
         chat.usr = ''
-        chat.msg = username + " left the chat (log out via twitter)" 
+        chat.msg = username + " left the chat (log out via GDI Account)" 
         chat.put()
         cp = ChatPost()
         cp.chatlist()                
-        self.redirect("/oauth/twitter/logout")
+        client.expire_cookie()
+        return self.redirect("/")  
 class MainPage(webapp.RequestHandler):
-    def get(self):
-        client = pythontwitter.OAuthClient('twitter', self)
+    def get(self,mode=""):
+        
+        #client = pythontwitter.OAuthClient('twitter', self)       
+        client = oauth.GDIClient(application_key, application_secret, callback,self)
+        if mode == "login":
+            return self.redirect(client.get_authorization_url())        
+        if mode == "verify":
+            auth_token = self.request.get("oauth_token")
+            auth_verifier = self.request.get("oauth_verifier")
+            user_info = client.get_user_info(auth_token, auth_verifier=auth_verifier)
+            return self.redirect("/")
+            
         nickname = ""
         new_token = ""
-        #if not client.get_cookie():
-        #    self.response.out.write('<a href="/oauth/twitter/login">Login via Twitter</a>')
-        #    return
-        
         if client.get_cookie():
-            info = client.get('/account/verify_credentials')
-            nickname = info['screen_name']
+            #info = client.get('/account/verify_credentials')
+            #nickname = info['screen_name']
+            nickname = client.get_cookie_username()
         else:
             nickname = "__anonymous"
         
@@ -534,9 +561,9 @@ application = webapp.WSGIApplication(
                                       ('/oauth/(.*)/(.*)', pythontwitter.OAuthHandler),
                                       ('/ping', ping),
                                       ('/archive', ChatArchive),                                      
-                                      ('/exit', ChatExit),
-                                      ('/', MainPage),
-                                      ('/chatpost',ChatPost)],                                      
+                                      ('/logout', ChatExit),                                 
+                                      ('/chatpost',ChatPost),                                      
+                                      ('/(.*)', MainPage)],                                      
                                      debug=True)
 
 def main():

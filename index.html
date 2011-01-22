@@ -1,6 +1,8 @@
 <html>
   <head>
-      <title>GDI Shoutbox</title>      
+      <title>GDI Shoutbox</title>
+      <link REL="SHORTCUT ICON" HREF="/favicon.ico">
+
       <script type="text/javascript" src="/_ah/channel/jsapi"></script>
       <script language="javascript" type="text/javascript" src="/res/jquery.js"></script>
       <script language="javascript" type="text/javascript" src="/res/jquerytimer.js"></script>
@@ -10,27 +12,69 @@
         <script type="text/javascript" src="/res/jqDnR.min.js"></script>
         <script type="text/javascript" src="/res/jquery.jqpopup.min.js"></script>
         <style type="text/css">
+            body{
+                background-color:#191919;
+            }
           body,div,tr,td{
-              font-family: Tahoma, Verdana, Helvetica, Arial;
-              font-size:12px;
+              font-family: Verdana, Tahoma,Helvetica, Arial;
+              font-size:10px;
+              color:#FED;
           }
           .chatbox{
-              border:1px solid black;
-              width:100%;
-              height:200px;
-              overflow:scroll;
+             background: #3b3b3b url('/res/strip_back.gif') repeat-x top left;
+             overflow:auto;
+             height:172px;
+             width:100%;
           }
+          
           .pdate{
-                font-size:9px;
-                color:#707070;            
+                font-size:8px;
+                color:#c0c0c0;            
           }
           .stdbtn { width:280px; }
+          .chat_entry{
+            padding:4px;
+            }
           A, A:link, A:visited{
-            color:#00aeff;
+            color:#ffbb11;
             text-decoration:none;
           }
           A:hover{
-            text-decoration:underline;
+            color:ffd261;
+            text-decoration:none;
+          }
+          .txt_msg{
+            background: #3b3b3b url('/res/strip_back.gif') repeat-x top left;
+	color: #ffdd77;
+	border-bottom     : 1px solid #555555;
+ 	border-right    : 1px solid #444444;
+ 	border-left   : 1px solid #333333;
+ 	border-top  : 1px solid #222222;
+	letter-spacing : 1px;
+	font: 10pt verdana, geneva, lucida, 'lucida grande', arial, helvetica, sans-serif;
+          }
+          .button{
+             	background: #000000  url('/res/cat_back.gif') repeat-x top left;
+            border-top     : 0px solid #555555;
+            border-left    : 1px solid #444444;
+            border-right   : 1px solid #333333;
+            border-bottom  : 1px solid #222222;
+            letter-spacing : 1px;
+            color : #cc9933;
+            font: 10px verdana, geneva, lucida, 'lucida grande', arial, helvetica, sans-serif;
+          }
+          .chat_main_box{
+            	background: #444444;
+	color: #ffeecc;
+	border-top: 1px solid #333333;
+        padding:5px;
+          }
+          .chat_main_title{
+            text-align:center;
+            padding:6px;
+            		background: #000000  url('/res/cat_back.gif') repeat-x top left;
+	color: #eeffcc;
+	font: bold 10pt verdana, geneva, lucida, 'lucida grande', arial, helvetica, sans-serif;
           }
         </style>  
   </head>
@@ -145,17 +189,20 @@
                     $("#div_emo").jqpopup_toCenter();
                 });
                 {% endifnotequal %}
-                $(document).everyTime(10000, function(i) { // send ping every 10 secs
+                $(document).everyTime(30000, function(i) { // send ping every xx secs
                     ping();                        
                 });
               
             });
             
       </script>
-      <a href='/archive'>Full Archive</a>
-      <table width='100%' border='0' cellspacing='2' cellpadding='2'>
+      
+      <div class='chat_main_title'>
+        <a href='/archive' alt="View full archive" title="View full archive">Shoutbox</a>
+      </div>
+      <table width='100%' border='0' cellspacing='2' cellpadding='2' class='chat_main_box'>
         <tr>
-            <td width='75%'>
+            <td width='85%'>
                 <div id="chatbox" class="chatbox">Loading chat...</div>
             </td>
             <td>
@@ -164,14 +211,14 @@
         </tr>
       </table>
     {% ifequal new_nickname "__anonymous" %}
-    <a href="/oauth/twitter/login">Login via Twitter</a> to join this chat
+    <a href="/login">Login via GDI Account</a> to join this chat
     {% else %}
     <form action="" method="post" id="frmChatMsg">
-      <div>
-        {{ new_nickname }} : <input type="text" value="" id="msg" size="60" />
-        <input type="submit" value="Send" id="submit" />
-        <input type='button' id='btn_view_emo' value='Smileys' />
-        <a href="/exit">Exit chat (Logout via Twitter)</a><br />
+      <div class='chat_main_box'>
+        <input type="text" value="" id="msg" size="50" class='txt_msg' />
+        <input type="submit" value="Shout" id="submit" class='button' />
+        <input type='button' id='btn_view_emo' value='Smilies' class='button' />
+        <a href="/logout">Exit chat (Logout via GDI Account)</a><br />
         
         
         <div id="div_emo" style="display:none;" title="Emoticons">
@@ -191,6 +238,11 @@
         Masih BETA, kadang2 down dan diganti2. Entry bisa terhapus setiap saat<hr />
         
         <b>Updates</b><br/>
+        20 Jam 2010
+        <ol>
+            <li>GDI Dark Theme</li>
+            <li>Switch ke  GDI Account</li>    
+        </ol>
         19 Jan 2010
         <ol>
             <li>Smiley skrng pake popup</li>
