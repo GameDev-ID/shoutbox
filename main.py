@@ -9,6 +9,8 @@ import pythontwitter
 import datetime
 import string
 import oauth
+import urllib
+from urlparse import urlparse
 
 application_key = "WLdDqBExrTh7QRrbRNSBvA" 
 application_secret = "mjcpGlsArr1oqd0GxNeh1kQuzyBn3I7GwPmHIME"
@@ -383,63 +385,23 @@ class ChatPost(webapp.RequestHandler):
         hash = re.compile(r"""\B#([0-9a-zA-Z_]+)""")
         msg = mention.sub(r'@<a href="http://twitter.com/#!/\1"><b>\1</b></a>', msg)
         msg = hash.sub(r'<a href="http://twitter.com/#!/search?q=%23\1"><b>#\1</b></a>', msg)
-        
-        """
-        #mention tweet @username
-        arr_msg = msg.split(' ')
-        msg = ""
-        for m in arr_msg:
-            raw_code = m.split('@')
-            valid = False
-            if len(raw_code)==2:
-                if raw_code[0]=='':
-                    if raw_code[1]!='': #valid mention
-                        valid = True
-                        tweet_username = raw_code[1]
-                        msg += " " + "@<a href='http://twitter.com/#!/" + tweet_username + "'><b>" + tweet_username + "</b></a>"
-            if valid == False:
-                msg += " " + m
-        
-        #mention hashtag #hashtag
-        arr_msg = msg.split(' ')
-        msg = ""
-        for m in arr_msg:
-            raw_code = m.split('#')
-            valid = False
-            if len(raw_code)==2:
-                if raw_code[0]=='':
-                    if raw_code[1]!='': #valid mention
-                        valid = True
-                        tweet_username = raw_code[1]
-                        msg += " " + "<a href='http://twitter.com/#!/search?q=%23" + tweet_username + "'><b>#" + tweet_username + "</b></a>"
-            if valid == False:
-                msg += " " + m
-        """
-        
-        #parse url
-        #http://
-        #if only www., then automatically add http://
-        arr_msg = msg.split(' ')
-        msg = ""
-        for m in arr_msg:
-            raw_code = m.split('www.')
-            if len(raw_code) == 2:
-                if raw_code[0] == '':
-                    if raw_code[1]!='': #a valid www.
-                        m = 'http://' + m
-            
-            raw_code = m.split('http://')
-            valid = False
-            if len(raw_code) == 2:
-                if raw_code[0] == '':
-                    if raw_code[1] != '': # a valid http://
-                        valid = True
-                        url = raw_code[1]
-                        msg += " " + "<a href='" + m + "'>" + raw_code[1] + "</a>"
-            
-            if valid == False:
-                msg += " " + m
                 
+        #parse url
+        arr_msg = msg.split(' ')
+        msg = ""
+        for m in arr_msg:
+            #if only www., then automatically add http://
+            if m[:4] == "www.":
+                m = "http://" + m
+            word = urlparse(m)            
+            if word.__getattribute__('scheme') != "":
+                url_caption = word.geturl()                
+                url_caption = url_caption.replace("http://"," ",1)
+                url_caption = url_caption.replace("https://"," ",1)                
+                msg += " " + "<a href='" + word.geturl() + "'>" + url_caption + "</a>"
+            else:
+                msg += " " + m
+        
         return {'usr':usr,'msg':msg,'date':fdate}
     def chatlist(self,archive=False):
         limit = 30

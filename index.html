@@ -177,7 +177,7 @@
                     if(txtMsg.attr('value')!=""){                                
                         var msg = txtMsg.attr('value');                      
                         var xhr = new XMLHttpRequest();
-                        xhr.open('POST', '/chatpost?message=' + escape(msg), true);
+                        xhr.open('POST', '/chatpost?message=' + encodeURIComponent(msg), true);
                         xhr.send();     
                     }                                          
                 });
