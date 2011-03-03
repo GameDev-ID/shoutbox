@@ -1,282 +1,235 @@
 <html>
-  <head>
-      <title>GDI Shoutbox</title>
-      <link REL="SHORTCUT ICON" HREF="/favicon.ico">
-
-      <script type="text/javascript" src="/_ah/channel/jsapi"></script>
-      <script language="javascript" type="text/javascript" src="/res/jquery.js"></script>
-      <script language="javascript" type="text/javascript" src="/res/jquerytimer.js"></script>
-      
-        <link rel="stylesheet" type="text/css" href="/res/jqpopup.css"/>
+    <head>
+        <title>GDI Shoutbox</title>
+        <link rel="SHORTCUT ICON" href="/favicon.ico">
+        <script type="text/javascript" src="/_ah/channel/jsapi"></script>
+        <script language="javascript" type="text/javascript" src="/res/jquery.js"></script>
+        <script language="javascript" type="text/javascript" src="/res/jquerytimer.js"></script>
+        <link rel="stylesheet" type="text/css" href="/res/jqpopup.css">
         <script type="text/javascript" src="/res/jquery.bgiframe.min.js"></script>
         <script type="text/javascript" src="/res/jqDnR.min.js"></script>
         <script type="text/javascript" src="/res/jquery.jqpopup.min.js"></script>
+        
         <style type="text/css">
-            body{
-                background-color:#191919;
+            body {
+                background-color: #191919;
+            }        
+            body,div,tr,td {
+                font-family: Verdana, Tahoma, Helvetica, Arial;
+                font-size: 10px;    
+                color: #FED;
+            }        
+            .chatbox {
+                background: #3b3b3b url('/res/strip_back.gif') repeat-x top left;
+                overflow: auto;
+                height: 172px;
+                width: 100%;
+            }        
+            .pdate {
+                font-size: 8px;
+                color: #c0c0c0;
+            }        
+            .stdbtn {
+                width: 280px;
+            }        
+            .chat_entry {
+                padding: 4px;
+            }        
+            A,A:link,A:visited {
+                color: #ffbb11;
+                text-decoration: none;
+            }        
+            A:hover {
+                color: ffd261;
+                text-decoration: none;
+            }        
+            .txt_msg {
+                background: #3b3b3b url('/res/strip_back.gif') repeat-x top left;
+                color: #ffdd77;
+                border-bottom: 1px solid #555555;
+                border-right: 1px solid #444444;
+                border-left: 1px solid #333333;
+                border-top: 1px solid #222222;
+                letter-spacing: 1px;
+                font: 10pt verdana, geneva, lucida, 'lucida grande', arial, helvetica, sans-serif;
+            }        
+            .button {
+                background: #000000 url('/res/cat_back.gif') repeat-x top left;
+                border-top: 0px solid #555555;
+                border-left: 1px solid #444444;
+                border-right: 1px solid #333333;
+                border-bottom: 1px solid #222222;
+                letter-spacing: 1px;
+                color: #cc9933;
+                font: 10px verdana, geneva, lucida, 'lucida grande', arial, helvetica, sans-serif;
+            }        
+            .chat_main_box {
+                background: #444444;
+                color: #ffeecc;
+                border-top: 1px solid #333333;
+                padding: 5px;
+            }        
+            .chat_main_title {
+                text-align: center;
+                padding: 6px;
+                background: #000000 url('/res/cat_back.gif') repeat-x top left;
+                color: #eeffcc;
+                font: bold 10pt verdana, geneva, lucida, 'lucida grande', arial,
+                helvetica, sans-serif;
             }
-          body,div,tr,td{
-              font-family: Verdana, Tahoma,Helvetica, Arial;
-              font-size:10px;
-              color:#FED;
-          }
-          .chatbox{
-             background: #3b3b3b url('/res/strip_back.gif') repeat-x top left;
-             overflow:auto;
-             height:172px;
-             width:100%;
-          }
-          
-          .pdate{
-                font-size:8px;
-                color:#c0c0c0;            
-          }
-          .stdbtn { width:280px; }
-          .chat_entry{
-            padding:4px;
-            }
-          A, A:link, A:visited{
-            color:#ffbb11;
-            text-decoration:none;
-          }
-          A:hover{
-            color:ffd261;
-            text-decoration:none;
-          }
-          .txt_msg{
-            background: #3b3b3b url('/res/strip_back.gif') repeat-x top left;
-	color: #ffdd77;
-	border-bottom     : 1px solid #555555;
- 	border-right    : 1px solid #444444;
- 	border-left   : 1px solid #333333;
- 	border-top  : 1px solid #222222;
-	letter-spacing : 1px;
-	font: 10pt verdana, geneva, lucida, 'lucida grande', arial, helvetica, sans-serif;
-          }
-          .button{
-             	background: #000000  url('/res/cat_back.gif') repeat-x top left;
-            border-top     : 0px solid #555555;
-            border-left    : 1px solid #444444;
-            border-right   : 1px solid #333333;
-            border-bottom  : 1px solid #222222;
-            letter-spacing : 1px;
-            color : #cc9933;
-            font: 10px verdana, geneva, lucida, 'lucida grande', arial, helvetica, sans-serif;
-          }
-          .chat_main_box{
-            	background: #444444;
-	color: #ffeecc;
-	border-top: 1px solid #333333;
-        padding:5px;
-          }
-          .chat_main_title{
-            text-align:center;
-            padding:6px;
-            		background: #000000  url('/res/cat_back.gif') repeat-x top left;
-	color: #eeffcc;
-	font: bold 10pt verdana, geneva, lucida, 'lucida grande', arial, helvetica, sans-serif;
-          }
-        </style>  
-  </head>
-  <body>
-      <script language='javascript' type='text/javascript'>
+        </style>
+    </head>
+    <body>
+        <script language='javascript' type='text/javascript'>
             var channel = new goog.appengine.Channel('{{ new_token }}');
             var socket = channel.open()
             
+        
             function convertDate (gmtDate){
-                  var originalDate = new Date(gmtDate);
-                  var nowDate = new Date();
-                  var hour_offset = new Date().getTimezoneOffset() / -60;
-                  originalDate.setHours(originalDate.getHours()+hour_offset);
-                  var day = originalDate.getDate();
-                  var month = originalDate.getMonth() + 1;
-                  var year = originalDate.getFullYear();
-                  var hour = originalDate.getHours();
-                  var min = originalDate.getMinutes();
-                  
-                  var nday = nowDate.getDate();
-                  var nmonth = nowDate.getMonth() + 1;
-                  var nyear = nowDate.getFullYear();
-                  
-                  var newDate = day + "/" + month + "/" + year + " " + hour + ":" + min;
-                  if (nday == day && nmonth == month && nyear == year){                    
-                      newDate = hour + ":" + min;
-                  }              
-                  return newDate;
-              }
-            function updateDateField(){
-              $('body').find("#pdate").each(function(index) {
-                  $(this).html(convertDate($(this).html()));
-              });
+                var originalDate = new Date(gmtDate);
+                var nowDate = new Date();
+                var hour_offset = new Date().getTimezoneOffset() / -60;
+                originalDate.setHours(originalDate.getHours()+hour_offset);
+                var day = originalDate.getDate();
+                var month = originalDate.getMonth() + 1;
+                var year = originalDate.getFullYear();
+                var hour = originalDate.getHours();
+                var min = originalDate.getMinutes();
+                
+                var nday = nowDate.getDate();
+                var nmonth = nowDate.getMonth() + 1;
+                var nyear = nowDate.getFullYear();
+                
+                var newDate = day + "/" + month + "/" + year + " " + hour + ":" + min;
+                if (nday == day && nmonth == month && nyear == year){										
+                    newDate = hour + ":" + min;
+                }							
+                return newDate;
             }
-            
+            function updateDateField(){
+                $('body').find("#pdate").each(function(index) {
+                    $(this).html(convertDate($(this).html()));
+                });
+            }    
             socket.onopen = function() {
-                  // request chat list
-                  var xhr = new XMLHttpRequest();
-                  xhr.open('POST', '/chatpost', true);
-                  xhr.send();
-                  ping(); 
-            }        
+                // request chat list
+                $.post('/chatpost',{}, function(data) {});
+                $.get('/_listaliveusers',{}, function(data) {}); 
+                $(document).everyTime(5000, function(i) { // send ping every xx secs
+                    ping();												
+                });
+            }				
             socket.onmessage = function(evt) {
                 var data = JSON.parse(evt.data)
                 if(data.return_type == "chatlist"){
                     $("#chatbox").html(data.data);
                     {% ifnotequal new_nickname "__anonymous" %}
                     var txtMsg = $("#frmChatMsg").find("#msg");
-                    var btnSubmit = $("#frmChatMsg").find("#submit");                  
+                    var btnSubmit = $("#frmChatMsg").find("#submit");									
                     if(txtMsg.attr('disabled')==true){
-                      txtMsg.attr('disabled',false);
-                      btnSubmit.attr('disabled',false);
-                      txtMsg.attr('value',"");
+                        txtMsg.attr('disabled',false);
+                        btnSubmit.attr('disabled',false);											
+                        btnSubmit.attr('value','Shout');
+                        txtMsg.attr('value',"");
                     }
                     {% endifnotequal %}
                     updateDateField();
                 }
                 if(data.return_type == "userlist"){
-                    $("#userlistbox").html(data.data);                   
+                $("#userlistbox").html(data.data);									 
                 }
             }
             function ping(){
-              $.post('/ping',{token:'{{ new_token }}'}, function(data) {}); 
+                $.post('/ping',{token:'{{ new_token }}'}, function(data) {}); 
             }
-          
             jQuery.fn.extend({
-            insertAtCaret: function(myValue){
-              return this.each(function(i) {
-                if (document.selection) {
-                  this.focus();
-                  sel = document.selection.createRange();
-                  sel.text = myValue;
-                  this.focus();
+                insertAtCaret: function(myValue){
+                    return this.each(function(i) {
+                        if (document.selection) {
+                            this.focus();
+                            sel = document.selection.createRange();
+                            sel.text = myValue;
+                            this.focus();
+                        }
+                        else if (this.selectionStart || this.selectionStart == '0') {
+                            var startPos = this.selectionStart;
+                            var endPos = this.selectionEnd;
+                            var scrollTop = this.scrollTop;
+                            this.value = this.value.substring(0, startPos)+myValue+this.value.substring(endPos,this.value.length);
+                            this.focus();
+                            this.selectionStart = startPos + myValue.length;
+                            this.selectionEnd = startPos + myValue.length;
+                            this.scrollTop = scrollTop;
+                        } else {
+                            this.value += myValue;
+                            this.focus();
+                        }
+                    })
                 }
-                else if (this.selectionStart || this.selectionStart == '0') {
-                  var startPos = this.selectionStart;
-                  var endPos = this.selectionEnd;
-                  var scrollTop = this.scrollTop;
-                  this.value = this.value.substring(0, startPos)+myValue+this.value.substring(endPos,this.value.length);
-                  this.focus();
-                  this.selectionStart = startPos + myValue.length;
-                  this.selectionEnd = startPos + myValue.length;
-                  this.scrollTop = scrollTop;
-                } else {
-                  this.value += myValue;
-                  this.focus();
-                }
-              })
-            }
             });
-          
             $(document).ready(function(){
                 {% ifnotequal new_nickname "__anonymous" %}
-                $("#frmChatMsg").find("#submit").click(function(e){
-                    e.preventDefault();
-                    var txtMsg = $("#frmChatMsg").find("#msg");
-                    var btnSubmit = $("#frmChatMsg").find("#submit");
-                    txtMsg.attr('disabled',true);
-                    btnSubmit.attr('disabled',true);                      
-                    if(txtMsg.attr('value')!=""){                                
-                        var msg = txtMsg.attr('value');                      
-                        var xhr = new XMLHttpRequest();
-                        xhr.open('POST', '/chatpost?message=' + encodeURIComponent(msg), true);
-                        xhr.send();     
-                    }                                          
-                });
-                $("body").find("#btn_emo").click(function(e){
-                    $("#msg").insertAtCaret($(this).attr('code'));
-                });
-                $("#btn_view_emo").click(function () {
-                    $("#div_emo").jqpopup_open(this.id);
-                    $("#div_emo").jqpopup_toCenter();
-                });
+                    $("#frmChatMsg").find("#submit").click(function(e){
+                        e.preventDefault();
+                        var txtMsg = $("#frmChatMsg").find("#msg");
+                        var btnSubmit = $("#frmChatMsg").find("#submit");
+                        txtMsg.attr('disabled',true);
+                        btnSubmit.attr('disabled',true);
+                        btnSubmit.attr('value','Sending...');										
+                        if(txtMsg.attr('value')!=""){																
+                            var msg = txtMsg.attr('value');											
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('POST', '/chatpost?message=' + encodeURIComponent(msg), true);
+                            xhr.send();		 
+                        }																					
+                    });
+                    $("body").find("#btn_emo").click(function(e){
+                        $("#msg").insertAtCaret($(this).attr('code'));
+                    });
+                    $("#btn_view_emo").click(function () {
+                        $("#div_emo").jqpopup_open(this.id);
+                        $("#div_emo").jqpopup_toCenter();
+                    });
                 {% endifnotequal %}
-                $(document).everyTime(30000, function(i) { // send ping every xx secs
-                    ping();                        
-                });
-              
+                
             });
-            
-      </script>
-      
-      <div class='chat_main_title'>
-        <a href='/archive' alt="View full archive" title="View full archive">Shoutbox</a>
-      </div>
-      <table width='100%' border='0' cellspacing='2' cellpadding='2' class='chat_main_box'>
-        <tr>
-            <td width='85%'>
-                <div id="chatbox" class="chatbox">Loading chat...</div>
-            </td>
-            <td>
-                <div id="userlistbox" class="chatbox">Loading userlist...</div>
-            </td>
-        </tr>
-      </table>
-    {% ifequal new_nickname "__anonymous" %}
-    <a href="/login">Login via GDI Account</a> to join this chat
-    {% else %}
-    <form action="" method="post" id="frmChatMsg">
-      <div class='chat_main_box'>
-        <input type="text" value="" id="msg" size="50" class='txt_msg' />
-        <input type="submit" value="Shout" id="submit" class='button' />
-        <input type='button' id='btn_view_emo' value='Smilies' class='button' />
-        <a href="/logout">Exit chat (Logout via GDI Account)</a><br />
+        </script>
         
-        
-        <div id="div_emo" style="display:none;" title="Emoticons">
-            {% for emo in arr_emo %}
-            <img src='/res/{{ emo.i }}' alt='{{ emo.c }}' title='{{ emo.c }}' id='btn_emo' code='{{ emo.c }}'/>
-            {% endfor %}
+        <div class='chat_main_title'>
+            Shoutbox&nbsp;
+            {% ifequal new_nickname "__anonymous" %}
+                |&nbsp;<a href="/login">Join Chat</a>
+                {% else %}
+                |&nbsp;<a href="/logout">Exit Chat</a><br />
+            {% endifequal %}
         </div>
-      </div>
-    </form>
-    {% endifequal %}
-    
-    
-    <br /><br /><br />
-    <div>
-        <b>GDI Shoutbox</b>
-        Murni buat shoutbox, entry nggak ke post ke twit anda, tidak puas uang kembali.<br />
-        Masih BETA, kadang2 down dan diganti2. Entry bisa terhapus setiap saat<hr />
         
-        <b>Updates</b><br/>
-        20 Jam 2010
-        <ol>
-            <li>GDI Dark Theme</li>
-            <li>Switch ke  GDI Account</li>    
-        </ol>
-        19 Jan 2010
-        <ol>
-            <li>Smiley skrng pake popup</li>
-        </ol>
-        18 Jan 2010
-        <ol>
-            <li>Tambah hashtag twitter #hashtag</li>
-            <li>Tambah plurk emoticon, pakai :plemo_[emoticon]</li>
-            <li>Tambah secret emoticon, pakai :ss_[emoticon]</li>
-            <li>Emoticon default sb gdi dah dipasang</li>
-            <li>Tambah emoticon toolbar</li>
-            <li>Liat past chats bisa dari link archive diatas chatlist</li>
-            <li>Bisa parse url</li>
-            <li>Bisa mention pake @username</li>
-            <li>Tambah emo :kabur: :cizcuz:, emo lain nyusul</li>
-            <li>Tambah command :imgbin_[code]: buat nampilin gambar imgbin</li>
-            <li>Tambah command /me [pesan disini]</li>
-            <li>Tambah message (log out via twitter) klo link exit chat di klik</li>
-            <li>Anonymous dah bisa liat chat, tapi harus join untuk ikutan chat</li>
-            <li>Datetime dah di format dan sesuai timezone</li>
-            <li>Join/quit message udah diperbaiki, hanya jika semua channel user nggak ada, baru di post messagenya</li>
-        </ol>
-        17 Jan 2010
-        <ol>
-            <li>Ganti dari polling ke Channel API untuk koneksi yg lebih persistent dan hemat resource</li>
-            <li>Nambahin list user online</li>
-            <li>Limit nampilin chat entry sampe 30 latest</li>
-            <li>Channel exclusif, tiap channel yg nggak ngeping ke server bakal get out dari list user online</li>
-        </ol>
-        16 Jan 2010
-        <ol>
-            <li>Mulai bikin gdishoutbox, setup account twitter, appengine, bikin database, semua2 deh</li>
-        </ol>
-            
-    </div>
-  </body>
+        <table width='100%' border='0' cellspacing='2' cellpadding='2' class='chat_main_box'>
+            <tr>
+                <td width='85%'>
+                    <div id="chatbox" class="chatbox">Loading chat...</div>
+                </td>
+                <td valign='top'>
+                    <div id="userlistbox" class="chatbox">Loading userlist...</div>  
+                </td>
+            </tr>
+        </table>
+        
+        {% ifnotequal new_nickname "__anonymous" %}    
+            <form action="" method="post" id="frmChatMsg">
+                <div class='chat_main_box'>
+                    <input type="text" value="" id="msg" size="50" class='txt_msg'>
+                    <input type="submit" value="Shout" id="submit" class='button'>
+                    <input type='button' id='btn_view_emo' value='Smilies' class='button'>
+                    <div id="div_emo" style="display: none;" title="Emoticons">                
+                        {% for emo in arr_emo %}                    
+                            <img src='/res/{{ emo.i }}' alt='{{ emo.c }}' title='{{ emo.c }}' id='btn_emo' code='{{ emo.c }}'>
+                        {% endfor %}
+                    </div>
+                </div>
+            </form>
+        {% endifnotequal %}
+    
+    </body>
 </html>
+

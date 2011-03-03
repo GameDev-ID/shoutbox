@@ -3,13 +3,14 @@
         color:#FF0000;
     }
 </style>
+
 {% for chat in chats %}
     <div class="chat_entry">
         {% ifequal chat.usr "" %}
             <small><i>{{ chat.msg }}</i></small> <span id="pdate" class='pdate'>{{ chat.date }}</span>
         {% else %}        
             <span id="pdate" class='pdate'>{{ chat.date }}</span> 
-            <b><a href='http://twitter.com/#!/{{ chat.usr }}'>{{ chat.usr }}</a></b> 
+            <b><a href='#'>{{ chat.usr }}</a></b> 
             {{ chat.msg }}
         {% endifequal %}
     </div>
