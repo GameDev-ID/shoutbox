@@ -18,7 +18,7 @@ application_key = "WLdDqBExrTh7QRrbRNSBvA"
 application_secret = "mjcpGlsArr1oqd0GxNeh1kQuzyBn3I7GwPmHIME"
 user_token = "FILL_IN"
 user_secret = "FILL_IN"
-#host = "http://localhost:9004"
+#host = "http://localhost:9005"
 host = "http://gdishoutbox.appspot.com"
 callback = "%s/verify" % host
 

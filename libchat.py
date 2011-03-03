@@ -298,11 +298,12 @@ def processMsg( usr, msg, fdate):
         if m[:4] == "www.":
             m = "http://" + m
         word = urlparse(m)
-        if word.__getattribute__('scheme') != "":
-            url_caption = word.geturl()
-            url_caption = url_caption.replace("http://", " ", 1)
-            url_caption = url_caption.replace("https://", " ", 1)
-            msg += " " + "<a href='" + word.geturl() + "'>" + url_caption + "</a>"
+    	scheme = word.__getattribute__('scheme');
+    	if scheme == "http" or scheme == "https":
+	            url_caption = word.geturl()
+	            url_caption = url_caption.replace("http://", " ", 1)
+	            url_caption = url_caption.replace("https://", " ", 1)
+	            msg += " " + "<a href='" + word.geturl() + "'>" + url_caption + "</a>"
         else:
             msg += " " + m
 
